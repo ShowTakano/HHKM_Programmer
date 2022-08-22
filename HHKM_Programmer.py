@@ -137,6 +137,33 @@ class Tk():
         self.entry_type_list_list = []
         self.entry_type_var_list = []
 
+        # 実験フェーズで入力した文字をvalに、帰ってきた文字をkeyにする。
+        # 使用禁止文字|\+_
+        # 使用可能文字!"#$%&'()=~-^`{@[*}]<>?./
+        # USキーボードをOS側でJISとして受け取っているとき、
+        #     |と認識させたいときBSを出力する。
+        #     \と認識させたいときBSかなし出力する。
+        #     +と認識させたいとき:を出力する。しかし:は禁止文字。
+        #     _と認識させたいとき出力する方法がない。
+        self.JIS2US = {
+            "*": '"',
+            "'": "&",
+            ":": "'",
+            ")": "(",
+            "^": "=",
+            "}": "|",
+            "&": "^",
+            "]": "\\",
+            "`": "{",
+            '"': "@",
+            "@": "[",
+            "~": "+",
+            "(": "*",
+            "{": "}",
+            "[": "]",
+            "=": "_",
+        }
+
 
     def _search_ports(self, event):
         # portを探索する。探索した結果をオプションメニューの選択肢に反映する。
@@ -188,10 +215,21 @@ class Tk():
                     _cmd = self.all_commands_dict[command]  # type
                     _str = self.entry_type_var_list[i].get()  # 入力されている文字列
                     # Type 禁止文字チェック
-                    if any(word in _str for word in [";", ":", ","]):
+                    if any(word in _str for word in [";", ":", ",", "|", "\\", "+", "_"]):
                         print("Do not use ;:,")
-                        mb.showinfo("Type Error", "[Type] Do not use ; : ,")
-                        _str = _str.replace(";", "").replace(":", "").replace(",", "")
+                        mb.showinfo("Type Error", "[Type] Do not use ; : , | \ + _")
+                        _str = _str.replace(";", "").replace(":", "").replace(",", "").replace("|", "").replace("\\", "").replace("+", "").replace("_", "")
+                    # JIS2US変換
+                    dst_str = ""
+                    for idx in range(len(_str)):
+                        __str = _str[idx]
+                        if __str in self.JIS2US.keys():
+                            converted_str = self.JIS2US[__str]
+                            dst_str = dst_str + converted_str
+                        else:
+                            dst_str = dst_str + __str
+                    _str = dst_str
+                        
                     # Type 文字数上限チェック
                     if len(_str) > 64:
                         print("Maximun length is 64.")
