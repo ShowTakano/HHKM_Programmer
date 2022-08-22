@@ -1,1 +1,8 @@
 *.pyc
+build
+*.spec
+*.png
+*.jpeg
+*.jpg
+*.gif
+*.stl
