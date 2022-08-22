@@ -10,7 +10,7 @@ import webbrowser
 
 from icons.icon import GuiIcon
 
-VERSION = "v1.0.1"
+VERSION = "v2.0.0"
 
 """
 pyinstaller               4.5.1
