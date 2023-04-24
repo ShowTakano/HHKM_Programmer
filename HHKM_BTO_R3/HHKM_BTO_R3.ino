@@ -5,8 +5,6 @@
 // 2022.09.01 V0.3 Switch US/JP by Serial Commnad  B.T.O
 // 2022.12.27 V0.4 RP2040 bug fix by B.T.O
 //
-// ボード1: Adafruit Neo Trinkey(SAMD21), 
-// ボード2: Raspberry Pi Pico
 // ボード3: Seeed Studio XIAO RP2040
 // 書込装置: AVRISP mk2 or Arduino IDE 1.8.19 (RP2040)
 
@@ -24,24 +22,13 @@
 //    FlashAsEEPROM.h              Custom Install Arduino FlashStorage Ver 1.0.0
 //    Adafruit_NeoPixel.h          Custom Install Adafruit NeoPixel Ver 1.10.5
 
-#if defined(ARDUINO_ARCH_SAMD)
-#define NEO_TRINKEY           // Adafruit Neo Trinkey(SAMD21), 
-#else
-#define RP2040_XIAO           // Seeed Studio XIAO RP2040
-//#define RP2040_PICO         // Raspberry Pi Pico
-#endif
-
 #define KEYBOARD_JP           // V0.2 Support JP Keyboard
 //#define KEYBOARD_US         // V0.2 Support JP Keyboard
 
 #define MAGIC_NUMBER_JP 0x5a
 #define MAGIC_NUMBER_US 0xa5
 
-#if defined(RP2040_XIAO) || defined(RP2040_PICO)
-  #include <EEPROM.h>  // Uno, Leonardo 1k=1024byte=1000文字  V0.1
-#else
-  #include <FlashAsEEPROM.h>  // EEPROMをエミュレート          V0.1
-#endif
+#include <EEPROM.h>  // Uno, Leonardo 1k=1024byte=1000文字  V0.1
 
 #include "KeyboardJP.h"
 #include "Mouse.h"
@@ -63,59 +50,45 @@ int       global_sec = 0;
 int       _global_sec = 0;
 uint8_t    magicNumber = MAGIC_NUMBER_JP;            // V0.3 
 
-#ifdef NEO_TRINKEY
-  int LED_BUILTIN = 13;                           // V0.1
-#endif
-
-#if defined(RP2040_XIAO) || defined(RP2040_PICO)
-  #define SERIAL_PORT_MONITOR Serial              // V0.1
-#endif
+#define SERIAL_PORT_MONITOR Serial              // V0.1
 
 // // Create the neopixel strip with the built in definitions NUM_NEOPIXEL and PIN_NEOPIXEL
 
-#if   defined(NEO_TRINKEY)
-  #define NUM_NEOPIXEL   4                       // V0.1
-  //#define PIN_NEOPIXEL  12                       // V0.1
-#elif defined(RP2040_XIAO)
-  #define NUM_NEOPIXEL   4                       // V0.1
-  #define PIN_NEOPIXEL  12                       // V0.1
-  #define NEO_POWER     11                       // V0.1
-#elif defined(RP2040_PICO)
-  #define NUM_NEOPIXEL   0                       // V0.1
-  #define PIN_NEOPIXEL  12                       // V0.1
-#endif
+#define NUM_NEOPIXEL   4                       // V0.1
+#define PIN_NEOPIXEL  12                       // V0.1
+#define NEO_POWER     11                       // V0.1
 
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_NEOPIXEL, PIN_NEOPIXEL, NEO_GRB + NEO_KHZ800);
 
+void software_reset() {
+  SCB->AIRCR = ((0x5FA << SCB_AIRCR_VECTKEY_Pos) | SCB_AIRCR_SYSRESETREQ_Msk);
+}
+
 void setup() {
-#if defined(RP2040_XIAO) || defined(RP2040_PICO)
   EEPROM.begin(Num_Cmd * Max_Str_Len + 1);      // V0.1
-#endif
   pinMode(LED_BUILTIN, OUTPUT);
   SERIAL_PORT_MONITOR.begin(9600);
-#ifdef RP2040_XIAO
   pinMode(NEO_POWER,OUTPUT);                    // V0.1 NeoPixel VCC
   digitalWrite(NEO_POWER, HIGH);                // V0.1 NeoPixel VCC
-#endif
-#ifndef RP2040_PICO
   strip.begin(); // start pixels
   strip.setBrightness(20); // not too bright!
   strip.show(); // Initialize all pixels to 'off'
-#endif
   for (int index = 0; index < Num_Cmd; index++){
     initializeFromEEPROM(index * Max_Str_Len);
   }
-#if    defined(KEYBOARD_JP)  
-  Keyboard.begin(KeyboardLayout_jp_JP); //  V0.2 initialize control over the keyboard:
-#elif  defined(KEYBOARD_US)
-  Keyboard.begin(KeyboardLayout_en_US); //  V0.2 initialize control over the keyboard:
-#else
-  Keyboard.begin();                     // initialize control over the keyboard:
-#endif
+  if (magicNumber == MAGIC_NUMBER_JP) {
+    // JPキーボードで開始
+    Keyboard.begin(KeyboardLayout_jp_JP);
+    neo_color(30, 144, 255, 500);  // ジャパンブルー
+  } else if (magicNumber == MAGIC_NUMBER_US) {
+    // USキーボードで開始
+    Keyboard.begin(KeyboardLayout_en_US);
+    neo_color(255, 241, 0, 500);  // アメリカイエロー
+  } else {
+    Keyboard.begin();
+    neo_color(0, 255, 0, 500);  // 想定外の緑
+  }
   Mouse.begin();
-#if defined(ARDUINO_ARCH_RP2040)
-  delay(500);
-#endif
   mouseMoveStarShape();
 }
 
@@ -140,7 +113,6 @@ void zeroPadToEEPROM(){
     byte len = zero.length();
     EEPROM.write(i, 0);
   }
-  EEPROM.write(Num_Cmd * Max_Str_Len + 1, magicNumber);       // write default magic number V0.3
 
   EEPROM.commit();
 }
@@ -173,17 +145,13 @@ String readStringFromEEPROM(int addrOffset)
 
 void initializeFromEEPROM(int addrOffset)
 {
-#ifdef NEO_TRINKEY
-  if (EEPROM.isValid()){  // 工場出荷時およびプログラム書き込み後初回は isValid 有効 ではないので、当処理は実行されない。一度書き込まれると次回通電時は実行される。
-#else
   uint8_t workMN = EEPROM.read(Num_Cmd * Max_Str_Len + 1);
 
   if (workMN == 0x5a || workMN == 0xa5) {
     magicNumber = workMN;
   //if (EEPROM.read(Num_Cmd * Max_Str_Len + 1) == 0x5a) {   // check magic number V0.1
-#endif
     int newStrLen = EEPROM.read(addrOffset);
-    neo_color(255, 241, 0, 50);  // EEPROM黄色10*50=500msec
+    // neo_color(255, 241, 0, 50);  // EEPROM黄色10*50=500msec
     if (0 < newStrLen){
       // any data serialを受信したときに全箇所0にしている。commandを受信した箇所は文字数を入れている
       char _data[newStrLen];
@@ -206,7 +174,7 @@ void initializeFromEEPROM(int addrOffset)
     }
   } else {
     // 工場出荷時およびプログラム書き込み後初回である。
-    neo_color(30, 144, 255, 50);  // ブルー500msec
+    // neo_color(30, 144, 255, 50);  // ブルー500msec
   }
 }
 
@@ -271,7 +239,6 @@ void blink(){
 // Input a value 0 to 255 to get a color value.
 // The colours are a transition r - g - b - back to r.
 uint32_t Wheel(byte WheelPos) {
-#ifndef RP2040_PICO
   if(WheelPos < 85) {
    return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
   } else if(WheelPos < 170) {
@@ -281,12 +248,10 @@ uint32_t Wheel(byte WheelPos) {
    WheelPos -= 170;
    return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
   }
-#endif
   return 0;
 }
 
 void neo_rainbow(){
-#ifndef RP2040_PICO
   for(int j = 0; j < 250; j++) { // cycles of all colors on wheel 250*4=1000=1sec
     for(int i = 0; i < strip.numPixels(); i++) {
       strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255));
@@ -295,27 +260,22 @@ void neo_rainbow(){
     }
   }
   neo_off();
-#endif
 }
 
 void neo_color(int r, int g, int b, int msec){
-#ifndef RP2040_PICO
   for(int i = 0; i < strip.numPixels(); i++) {
     strip.setPixelColor(i, r, g, b);
   }
   strip.show();
   delay(msec);
   neo_off();
-#endif
 }
 
 void neo_off(){
-#ifndef RP2040_PICO
   for(int k = 0; k < strip.numPixels(); k++) {
     strip.setPixelColor(k, 0x0);
   }
   strip.show();
-#endif
 }
 
 void myprint(String msg, String end_str){
@@ -483,6 +443,20 @@ void execute(String command){
     delay(1000);
     Keyboard.releaseAll();
     Keyboard.write(KEY_RETURN);
+  } else if (command == "switch-to-us"){
+    // EEPROMに代入し
+    EEPROM.write(Num_Cmd * Max_Str_Len + 1, MAGIC_NUMBER_US);
+    EEPROM.commit();
+    // ソフトウェアリセット
+    // software_reset();
+    // 手動抜き差しによる切り替えとする
+  } else if (command == "switch-to-jp"){
+    // EEPROMに代入し
+    EEPROM.write(Num_Cmd * Max_Str_Len + 1, MAGIC_NUMBER_JP);
+    EEPROM.commit();
+    // ソフトウェアリセット
+    // software_reset();
+    // 手動抜き差しによる切り替えとする
   } else {
     // 最後は、typeコマンドであり、入力する文字列が直接入っている場合
     int cmd_len = command.length() + 1;
@@ -511,9 +485,7 @@ void event(){
       // イベント発生時間
       // do 
       execute(Event_Command[idx]);
-#ifdef RP2040_PICO
-      blink();
-#endif
+      // blink();
       neo_rainbow();
       SERIAL_PORT_MONITOR.print(readStringFromEEPROM(idx * Max_Str_Len));
       SERIAL_PORT_MONITOR.print(";");
