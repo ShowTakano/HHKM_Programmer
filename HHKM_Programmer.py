@@ -117,6 +117,8 @@ class Tk():
             "Log-out(Win)":                 "log-out-win",  # (ctrl-alt-del down down enter)
             "Log-out(macOS)":               "log-out-osx",  # (KEY_LEFT_GUI-Shift-Q enter)
             "Log-out(Linux)":               "log-out-linux",  # (ctrl-alt-del enter)
+            "Switch to US-KeyBoard":        "switch-to-us",  # 次回電源投入時に有効化
+            "Switch to JP-KeyBoard":        "switch-to-jp",  # 次回電源投入時に有効化
         }
 
         # コマンド数
@@ -215,20 +217,20 @@ class Tk():
                     _cmd = self.all_commands_dict[command]  # type
                     _str = self.entry_type_var_list[i].get()  # 入力されている文字列
                     # Type 禁止文字チェック
-                    if any(word in _str for word in [";", ":", ",", "|", "\\", "+", "_"]):
+                    if any(word in _str for word in [";", ":", ","]):
                         print("Do not use ;:,")
-                        mb.showinfo("Type Error", "[Type] Do not use ; : , | \ + _")
-                        _str = _str.replace(";", "").replace(":", "").replace(",", "").replace("|", "").replace("\\", "").replace("+", "").replace("_", "")
+                        mb.showinfo("Type Error", "[Type] Do not use ; : ,")
+                        _str = _str.replace(";", "").replace(":", "").replace(",", "")
                     # JIS2US変換
-                    dst_str = ""
-                    for idx in range(len(_str)):
-                        __str = _str[idx]
-                        if __str in self.JIS2US.keys():
-                            converted_str = self.JIS2US[__str]
-                            dst_str = dst_str + converted_str
-                        else:
-                            dst_str = dst_str + __str
-                    _str = dst_str
+                    # dst_str = ""
+                    # for idx in range(len(_str)):
+                    #     __str = _str[idx]
+                    #     if __str in self.JIS2US.keys():
+                    #         converted_str = self.JIS2US[__str]
+                    #         dst_str = dst_str + converted_str
+                    #     else:
+                    #         dst_str = dst_str + __str
+                    # _str = dst_str
                         
                     # Type 文字数上限チェック
                     if len(_str) > 64:
@@ -238,6 +240,13 @@ class Tk():
                     _cmd = _cmd + ":" + _str
                 else:
                     _cmd = self.all_commands_dict[command]
+                    if "Switch to" in command:
+                        pass
+                        jp_or_us = command.replace("Switch to ", "").replace("-KeyBoard", "")  # Switch to US-KeyBoard
+                        msg = "次回の接続時から" + jp_or_us + "キーボードに切り替えます。HHKMをUSBポートから抜いてください。\nアプリも再起動してください。"
+                        print(msg)
+                        mb.showinfo(command, msg)
+                        
                 interval_sec = self.spn_selected_list[i].get()
                 # スピンボックス 誤入力チェック
                 try:
