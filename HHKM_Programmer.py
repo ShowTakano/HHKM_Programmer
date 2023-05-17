@@ -261,6 +261,10 @@ class Tk():
                     mb.showinfo("sec Error", "[sec] Maximun (sec) is 32400.")
                     interval_sec = "32400"
                 interval_or_once = self.int_or_once_selected_list[i].get()
+                # JP/US切替の場合3sec/onceに上書き
+                if "Switch to" in command:
+                    interval_sec = "3"
+                    interval_or_once = "once"
                 cmd = _cmd + "," + interval_sec + "," + interval_or_once + ";"
                 cmds.append(cmd)
         return cmds
