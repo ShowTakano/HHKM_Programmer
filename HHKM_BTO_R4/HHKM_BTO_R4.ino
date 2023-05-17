@@ -78,11 +78,24 @@ void setup() {
     Keyboard.begin(KeyboardLayout_en_US);
     neo_color(255, 241, 0, 500);  // アメリカイエロー
   } else {
-    Keyboard.begin();
     neo_color(0, 255, 0, 500);  // 想定外の緑
+    errorInit();
   }
   Mouse.begin();
   mouseMoveStarShape();
+}
+
+void errorInit(){
+  // 通常動作時にはmagicNumberがJPでもUSでもない値になることはあり得ないが、
+  // EEPROMに異常値が入っており他の配列から配列外アクセスでmagicNumberを上書きしたのか、
+  // 緑に光りスタックする現象に遭遇
+  // EEPROMをすべてゼロクリアしソフトウェアリセットして回避する
+  zeroPadToEEPROM();
+  delay(10);
+  EEPROM.write(Num_Cmd * Max_Str_Len + 1, MAGIC_NUMBER_JP);
+  EEPROM.commit();
+  delay(10);
+  software_reset();
 }
 
 void mouseMoveStarShape(){
@@ -437,19 +450,23 @@ void execute(String command){
     Keyboard.releaseAll();
     Keyboard.write(KEY_RETURN);
   } else if (command == "switch-to-us"){
-    // EEPROMに代入し
-    EEPROM.write(Num_Cmd * Max_Str_Len + 1, MAGIC_NUMBER_US);
-    EEPROM.commit();
-    // ソフトウェアリセット
-    // software_reset();
-    // 手動抜き差しによる切り替えとする
+    if (magicNumber != MAGIC_NUMBER_US) {
+      // 現在のmagicNumverがUSじゃなかったら、USを入れ
+      magicNumber = MAGIC_NUMBER_US;
+      // EEPROMにUSを代入
+      EEPROM.write(Num_Cmd * Max_Str_Len + 1, MAGIC_NUMBER_US);
+      EEPROM.commit();
+      // EEPROMに頻繁に書き込むと、書き込み中に本体を抜かれて異常値が入る可能性が増えるため
+    }
   } else if (command == "switch-to-jp"){
-    // EEPROMに代入し
-    EEPROM.write(Num_Cmd * Max_Str_Len + 1, MAGIC_NUMBER_JP);
-    EEPROM.commit();
-    // ソフトウェアリセット
-    // software_reset();
-    // 手動抜き差しによる切り替えとする
+    if (magicNumber != MAGIC_NUMBER_JP) {
+      // 現在のmagicNumberがJPじゃなかったら、JPを入れ
+      magicNumber = MAGIC_NUMBER_JP;
+      // EEPROMに代入
+      EEPROM.write(Num_Cmd * Max_Str_Len + 1, MAGIC_NUMBER_JP);
+      EEPROM.commit();
+      // EEPROMに頻繁に書き込むと、書き込み中に本体を抜かれて異常値が入る可能性が増えるため
+    }
   } else {
     // 最後は、typeコマンドであり、入力する文字列が直接入っている場合
     int cmd_len = command.length() + 1;
