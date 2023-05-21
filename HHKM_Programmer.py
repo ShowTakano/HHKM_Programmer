@@ -242,10 +242,10 @@ class Tk():
                     _cmd = self.all_commands_dict[command]
                     if "Switch to" in command:
                         pass
-                        jp_or_us = command.replace("Switch to ", "").replace("-KeyBoard", "")  # Switch to US-KeyBoard
-                        msg = "次回の接続時から" + jp_or_us + "キーボードに切り替えます。HHKMをUSBポートから抜いてください。\nアプリも再起動してください。"
-                        print(msg)
-                        mb.showinfo(command, msg)
+                        # jp_or_us = command.replace("Switch to ", "").replace("-KeyBoard", "")  # Switch to US-KeyBoard
+                        # msg = "次回の接続時から" + jp_or_us + "キーボードに切り替えます。HHKMをUSBポートから抜いてください。\nアプリも再起動してください。"
+                        # print(msg)
+                        # mb.showinfo(command, msg)
                         
                 interval_sec = self.spn_selected_list[i].get()
                 # スピンボックス 誤入力チェック
@@ -282,6 +282,17 @@ class Tk():
             self.mydevice.write_str("end;")
             time.sleep(0.5)
             mb.showinfo("Success", "Write successful !!")
+            # JP/US切替メッセージを表示
+            for cmd in cmds:
+                if "switch-to-us" in cmd:
+                    jp_or_us = "US"
+                    msg = "次回の接続時から" + jp_or_us + "キーボードに切り替えます。HHKMをUSBポートから抜いてください。\nアプリも再起動してください。"
+                    mb.showinfo("msg", msg)
+                if "switch-to-jp" in cmd:
+                    jp_or_us = "JP"
+                    msg = "次回の接続時から" + jp_or_us + "キーボードに切り替えます。HHKMをUSBポートから抜いてください。\nアプリも再起動してください。"
+                    mb.showinfo("msg", msg)
+            
         except:
             mb.showinfo("Write Error", "Write failed !! Device may not be connected.")
 
