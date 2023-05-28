@@ -6,9 +6,9 @@ build
 *.jpg
 *.gif
 *.stl
-!documents/images/KeyVisual2.jpg
-!documents/gif/connect_git_vga_10fps.gif
-!documents/images/sample_1_mouse_move.PNG
-!documents/images/USBHub.JPG
-!documents/gif/hello_gif2_vga_5fps.gif
-!documents/gif/otherpc_gif_vga_5fps.gif
+!src/documents/images/KeyVisual2.jpg
+!src/documents/gif/connect_git_vga_10fps.gif
+!src/documents/images/sample_1_mouse_move.PNG
+!src/documents/images/USBHub.JPG
+!src/documents/gif/hello_gif2_vga_5fps.gif
+!src/documents/gif/otherpc_gif_vga_5fps.gif
