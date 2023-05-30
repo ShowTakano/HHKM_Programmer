@@ -4,23 +4,16 @@
 // 2022.08.30 V0.2 Support JP Keyboaard by B.T.O
 // 2022.09.01 V0.3 Switch US/JP by Serial Commnad  B.T.O
 // 2022.12.27 V0.4 RP2040 bug fix by B.T.O
+// 2023.05.16 V0.5 change board manager and libray version
 //
-// ボード3: Seeed Studio XIAO RP2040
-// 書込装置: AVRISP mk2 or Arduino IDE 1.8.19 (RP2040)
-
+//  Arduino IDE : 1.8.19
+//  Board :   Seeed XIAO RP2040
 //  RP2040 Board Manager and Libraries
-//    Board Manager                Raspberry Pi Pico/RP2040 Ver2.5.0
-//    KeyboradJP.h                 Custom Install JP_Keyboard Ver 1.0.3 by B.T.O
-//    Mouse.h                      Built-In by Arduino Ver1.0.1
+//    Board Manager                Raspberry Pi Pico/RP2040 Ver3.2.0
+//    KeyboradJP.h                 Custom Install JP_Keyboard Ver 1.0.5 by B.T.O
+//    Mouse.h                      Built-In by Raspberry Pi Pico/RP2040 Ver 1.0.1
 //    EEPROM.h                     Built-In by Raspberry Pi Pico/RP2040 Ver 1.0
-//    Adafruit_NeoPixel.h          Custom Install Adafruit NeoPixel Ver 1.10.5
-//
-//  NeoTrinkey Board Manager and Libraries
-//    Board Manager                Adafruit SAMD Boards Ver1.7.10
-//    KeyboradJP.h                 Custom Install JP_Keyboard Ver 1.0.3 by B.T.O
-//    Mouse.h                      Built-In by Arduino Ver1.0.1
-//    FlashAsEEPROM.h              Custom Install Arduino FlashStorage Ver 1.0.0
-//    Adafruit_NeoPixel.h          Custom Install Adafruit NeoPixel Ver 1.10.5
+//    Adafruit_NeoPixel.h          Custom Install Adafruit NeoPixel Ver 1.11.0 
 
 #define KEYBOARD_JP           // V0.2 Support JP Keyboard
 //#define KEYBOARD_US         // V0.2 Support JP Keyboard
@@ -85,11 +78,24 @@ void setup() {
     Keyboard.begin(KeyboardLayout_en_US);
     neo_color(255, 241, 0, 500);  // アメリカイエロー
   } else {
-    Keyboard.begin();
     neo_color(0, 255, 0, 500);  // 想定外の緑
+    errorInit();
   }
   Mouse.begin();
   mouseMoveStarShape();
+}
+
+void errorInit(){
+  // 通常動作時にはmagicNumberがJPでもUSでもない値になることはあり得ないが、
+  // EEPROMに異常値が入っており他の配列から配列外アクセスでmagicNumberを上書きしたのか、
+  // 緑に光りスタックする現象に遭遇
+  // EEPROMをすべてゼロクリアしソフトウェアリセットして回避する
+  zeroPadToEEPROM();
+  delay(10);
+  EEPROM.write(Num_Cmd * Max_Str_Len + 1, MAGIC_NUMBER_JP);
+  EEPROM.commit();
+  delay(10);
+  software_reset();
 }
 
 void mouseMoveStarShape(){
@@ -444,19 +450,23 @@ void execute(String command){
     Keyboard.releaseAll();
     Keyboard.write(KEY_RETURN);
   } else if (command == "switch-to-us"){
-    // EEPROMに代入し
-    EEPROM.write(Num_Cmd * Max_Str_Len + 1, MAGIC_NUMBER_US);
-    EEPROM.commit();
-    // ソフトウェアリセット
-    // software_reset();
-    // 手動抜き差しによる切り替えとする
+    if (magicNumber != MAGIC_NUMBER_US) {
+      // 現在のmagicNumverがUSじゃなかったら、USを入れ
+      magicNumber = MAGIC_NUMBER_US;
+      // EEPROMにUSを代入
+      EEPROM.write(Num_Cmd * Max_Str_Len + 1, MAGIC_NUMBER_US);
+      EEPROM.commit();
+      // EEPROMに頻繁に書き込むと、書き込み中に本体を抜かれて異常値が入る可能性が増えるため
+    }
   } else if (command == "switch-to-jp"){
-    // EEPROMに代入し
-    EEPROM.write(Num_Cmd * Max_Str_Len + 1, MAGIC_NUMBER_JP);
-    EEPROM.commit();
-    // ソフトウェアリセット
-    // software_reset();
-    // 手動抜き差しによる切り替えとする
+    if (magicNumber != MAGIC_NUMBER_JP) {
+      // 現在のmagicNumberがJPじゃなかったら、JPを入れ
+      magicNumber = MAGIC_NUMBER_JP;
+      // EEPROMに代入
+      EEPROM.write(Num_Cmd * Max_Str_Len + 1, MAGIC_NUMBER_JP);
+      EEPROM.commit();
+      // EEPROMに頻繁に書き込むと、書き込み中に本体を抜かれて異常値が入る可能性が増えるため
+    }
   } else {
     // 最後は、typeコマンドであり、入力する文字列が直接入っている場合
     int cmd_len = command.length() + 1;
