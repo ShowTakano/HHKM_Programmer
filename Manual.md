@@ -44,7 +44,7 @@
  ### 4時間後にコマンドプロンプトを起動してPCの電源を切る
  ![shutdown](src/documents/images/sample_8_shutdown.PNG)
  ### JP/USキーボードを切り替える
- ![画像](src/documents/images/sample_9_JPUS_keyboard.PNG)  
+ ![JPUS_keyboard](src/documents/images/sample_9_JPUS_keyboard.PNG)  
  Typeコマンドを使用し、英数字記号などキーボード入力動作を登録する際には、お使いのキーボードのJP/US設定と合わせてご使用ください。  
  デフォルトではJPキーボード設定となっております。  
  JPモードでの接続時の色: 青  
