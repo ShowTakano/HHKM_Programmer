@@ -5,6 +5,7 @@
 // 2022.09.01 V0.3 Switch US/JP by Serial Commnad  B.T.O
 // 2022.12.27 V0.4 RP2040 bug fix by B.T.O
 // 2023.05.16 V0.5 change board manager and libray version
+// 2023.06.27 V0.6 Initialize EEPROM as JP when Factory settings.
 //
 //  Arduino IDE : 1.8.19
 //  Board :   Seeed XIAO RP2040
@@ -58,7 +59,7 @@ void software_reset() {
 }
 
 void setup() {
-  EEPROM.begin(Num_Cmd * Max_Str_Len + 1);      // V0.1
+  EEPROM.begin(Num_Cmd * Max_Str_Len + 2);      // V0.6
   pinMode(LED_BUILTIN, OUTPUT);
   SERIAL_PORT_MONITOR.begin(9600);
   pinMode(NEO_POWER,OUTPUT);                    // V0.1 NeoPixel VCC
@@ -181,6 +182,8 @@ void initializeFromEEPROM(int addrOffset)
   } else {
     // 工場出荷時およびプログラム書き込み後初回である。
     // neo_color(30, 144, 255, 50);  // ブルー500msec
+    EEPROM.write(Num_Cmd * Max_Str_Len + 1, magicNumber);  // V0.6
+    EEPROM.commit();  // V0.6
   }
 }
 
