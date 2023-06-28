@@ -17,3 +17,7 @@ Mouse.hの不具合が解消された。
 ボードマネジャーがVer3.2.0より新しいこと or Ver3.1.1ではないことを確認すること。
 
 当情報はBTO大江様のご尽力により判明した。感謝。
+
+またボードの選択をGeneric PR2040にし、コンパイルしたバイナリを生成することでADHHKM.ino.generic.uf2を生成することができる。
+BTO大江様より受領したADHHKM.ino.generic.uf2をcommitする。
+(なお、鷹野が生成したADHHKM.ino.generic.uf2とはWinMergeレベルでは差分が発生した。しかし大江様のuf2ファイルで正常に動作することを確認した。)
