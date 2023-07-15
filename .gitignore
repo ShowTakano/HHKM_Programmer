@@ -6,6 +6,7 @@ build
 *.jpg
 *.gif
 *.stl
+!src/documents/images/ADHHKM.jpg
 !src/documents/images/KeyVisual2.jpg
 !src/documents/gif/connect_git_vga_10fps.gif
 !src/documents/gif/usersmanual_gif_vga_5fps.gif
@@ -19,5 +20,7 @@ build
 !src/documents/images/sample_8_shutdown.PNG
 !src/documents/images/sample_9_JPUS_keyboard.PNG
 !src/documents/images/USBHub.JPG
+!src/documents/images/permission2.png
+!src/documents/images/download_releasefiles.PNG
 !src/documents/gif/hello_gif2_vga_5fps.gif
 !src/documents/gif/otherpc_gif_vga_5fps.gif

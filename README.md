@@ -6,9 +6,11 @@
  - スクリーンセーバー・ログアウトを防止、1時間後にメールを送信、など自由自在！
  - ドライバーフリー！アプリインストール無し！PCからはキーボード・マウスとして認識されます。
  - JP/USキーボード切替に対応
- - Windows/Mac対応 (Win版とMac版の各専用アプリがあります)
+ - 設定用Windowsアプリ
 
-![画像](src/documents/images/KeyVisual2.jpg)
+<div align="center">
+<img src="src/documents/images/ADHHKM.jpg" alt="attr" title="ADHHKM">
+</div>
 <div align="center">
 <img src="src/documents/gif/connect_git_vga_10fps.gif" alt="attr" title="接続">
 </div>

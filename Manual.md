@@ -1,6 +1,15 @@
  # HHKM Programmer 操作マニュアル
 このページは、HHKM Programmerの操作マニュアルおよびサンプル集です。
 
+ ## 動作プログラム書き込みアプリ HHKM Programmer 入手・起動方法
+ ### HHKM Programmer ダウンロード
+ [リリースページ](https://github.com/ShowTakano/HHKM_Programmer/releases)からダウンロードしてください。
+![download](src/documents/images/download_releasefiles.png)
+
+ ### 「WindowsによってPCが保護されました」と表示され、アプリを実行できない場合。
+HHKM_Programmer.zipを解凍し、HHKM_Programmer.exeを右クリック、プロパティー、セキュリティーの項目の許可するにチェックし、適用、OKを選択してください。  
+![permission](src/documents/images/permission2.PNG)
+
  ## 動作プログラム書き込みアプリ HHKM Programmer 操作手順
 
 1. HHKMをUSBポートに接続  
