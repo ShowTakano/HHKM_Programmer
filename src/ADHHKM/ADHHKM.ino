@@ -6,6 +6,7 @@
 // 2022.12.27 V0.4 RP2040 bug fix by B.T.O
 // 2023.05.16 V0.5 change board manager and libray version
 // 2023.06.27 V0.6 Initialize EEPROM as JP when Factory settings.
+// 2023.08.24 V0.7 bug fix by B.T.O
 //
 //  Arduino IDE : 1.8.19
 //  Board :   Seeed XIAO RP2040
@@ -140,7 +141,7 @@ void writeStringToEEPROM(int addrOffset, const String &strToWrite)
 String readStringFromEEPROM(int addrOffset)
 {
   int newStrLen = EEPROM.read(addrOffset);
-  char data[newStrLen];
+  char data[Max_Str_Len];        // V0.7 bug fix
 
   for (int i = 0; i < newStrLen; i++)
   {
@@ -161,7 +162,7 @@ void initializeFromEEPROM(int addrOffset)
     // neo_color(255, 241, 0, 50);  // EEPROM黄色10*50=500msec
     if (0 < newStrLen){
       // any data serialを受信したときに全箇所0にしている。commandを受信した箇所は文字数を入れている
-      char _data[newStrLen];
+      char _data[Max_Str_Len];        // V0.7 bug fix
 
       for (int i = 0; i < newStrLen; i++)
       {
