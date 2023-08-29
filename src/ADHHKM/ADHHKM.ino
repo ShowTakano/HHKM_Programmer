@@ -6,7 +6,8 @@
 // 2022.12.27 V0.4 RP2040 bug fix by B.T.O
 // 2023.05.16 V0.5 change board manager and libray version
 // 2023.06.27 V0.6 Initialize EEPROM as JP when Factory settings.
-// 2023.08.24 V0.7 bug fix by B.T.O
+// 2023.08.24 V1.1 bug fix by B.T.O
+// 2023.08.24 V1.2 bug fix2 by B.T.O
 //
 //  Arduino IDE : 1.8.19
 //  Board :   Seeed XIAO RP2040
@@ -141,12 +142,19 @@ void writeStringToEEPROM(int addrOffset, const String &strToWrite)
 String readStringFromEEPROM(int addrOffset)
 {
   int newStrLen = EEPROM.read(addrOffset);
-  char data[Max_Str_Len];        // V0.7 bug fix
+  if (newStrLen < 0 || newStrLen > Max_Str_Len)
+  {
+    return String("");
+  }
 
-  for (int i = 0; i < newStrLen; i++)
+  char data[Max_Str_Len + 1];     // V1.2 bug fix
+  int i;                          // V1.2 bug fix
+
+  for (i = 0; i < newStrLen; i++)
   {
     data[i] = EEPROM.read(addrOffset + 1 + i);
   }
+  data[i] = '\0';                 // V1.2 bug fix
 
   return String(data);
 }
@@ -160,15 +168,16 @@ void initializeFromEEPROM(int addrOffset)
   //if (EEPROM.read(Num_Cmd * Max_Str_Len + 1) == 0x5a) {   // check magic number V0.1
     int newStrLen = EEPROM.read(addrOffset);
     // neo_color(255, 241, 0, 50);  // EEPROM黄色10*50=500msec
-    if (0 < newStrLen){
+    if (0 < newStrLen && newStrLen <= Max_Str_Len) {    // V1.2 bug fix
       // any data serialを受信したときに全箇所0にしている。commandを受信した箇所は文字数を入れている
-      char _data[Max_Str_Len];        // V0.7 bug fix
+      char _data[Max_Str_Len + 1];    // V1.2 bug fix
+      int i;                          // V1.2 bug fix
 
-      for (int i = 0; i < newStrLen; i++)
+      for (i = 0; i < newStrLen; i++)
       {
         _data[i] = EEPROM.read(addrOffset + 1 + i);
       }
-
+      _data[i] = '\0';                // V1.2 bug fix
       String data = String(_data);
       // initializeのためにdataをparse
       String command;
